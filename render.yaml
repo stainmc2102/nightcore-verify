@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: discord-verify-web
+    runtime: python
+    buildCommand: pip install -r requirements-web.txt
+    startCommand: python web_server.py
+    envVars:
+      - key: RECAPTCHA_SITE_KEY
+        sync: false
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false
+      - key: API_SECRET
+        sync: false

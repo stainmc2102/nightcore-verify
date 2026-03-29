@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Minh Discord</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 100px; height: 100px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            border: 4px solid #5865F2;
+            box-shadow: 0 5px 20px rgba(88,101,242,0.3);
+            object-fit: cover;
+            display: block;
+        }
+
+        .default-avatar {
+            width: 100px; height: 100px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #5865F2;
+            box-shadow: 0 5px 20px rgba(88,101,242,0.3);
+        }
+
+        .default-avatar svg, .logo svg { width: 50px; height: 50px; fill: white; }
+
+        .logo {
+            width: 80px; height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .user-name { font-size: 22px; font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+        .user-tag { font-size: 14px; color: #7f8c8d; margin-bottom: 20px; }
+
+        h1 { color: #2c3e50; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 16px; }
+
+        .instructions {
+            background: #e8f4fd; border-radius: 10px;
+            padding: 20px; margin-bottom: 25px; text-align: left;
+        }
+        .instructions h3 { color: #2980b9; margin-bottom: 10px; font-size: 16px; }
+        .instructions ol { color: #34495e; padding-left: 20px; }
+        .instructions li { margin-bottom: 8px; }
+
+        .captcha-container { display: flex; justify-content: center; margin: 25px 0; }
+
+        .verify-btn {
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+            color: white; border: none;
+            padding: 15px 40px; font-size: 18px;
+            border-radius: 10px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%; font-weight: 600;
+        }
+        .verify-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(88,101,242,0.4); }
+        .verify-btn:active { transform: translateY(0); }
+        .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .error {
+            background: #fee; color: #c0392b;
+            padding: 15px; border-radius: 10px;
+            margin-bottom: 20px; border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .success-container { text-align: center; }
+
+        .success-icon {
+            width: 100px; height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .success-icon svg { width: 50px; height: 50px; fill: white; }
+        .success-message { color: #27ae60; font-size: 24px; font-weight: 600; margin-bottom: 15px; }
+        .success-text { color: #7f8c8d; margin-bottom: 10px; }
+
+        .loading { color: #7f8c8d; padding: 20px; font-size: 16px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="loading" id="loading-section">Đang tải...</div>
+
+    <div id="verify-section" style="display:none;">
+        <div id="avatar-section"></div>
+        <div id="user-name-el" class="user-name" style="display:none;"></div>
+        <div id="user-tag-el" class="user-tag" style="display:none;"></div>
+
+        <h1>Xác Minh Discord</h1>
+        <p class="subtitle">Hoàn thành xác minh để truy cập server</p>
+
+        <div class="instructions">
+            <h3>Hướng dẫn:</h3>
+            <ol>
+                <li>Hoàn thành captcha bên dưới</li>
+                <li>Nhấn nút "Xác Minh"</li>
+                <li>Quay lại Discord - role sẽ được cấp tự động</li>
+            </ol>
+        </div>
+
+        <div id="error-msg" class="error"></div>
+
+        <div class="captcha-container">
+            <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+        </div>
+
+        <button class="verify-btn" id="verify-btn" onclick="submitVerify()">Xác Minh</button>
+    </div>
+
+    <div id="success-section" style="display:none;" class="success-container">
+        <div id="success-avatar-section"></div>
+        <div id="success-user-name" class="user-name" style="display:none;"></div>
+        <div id="success-user-tag" class="user-tag" style="display:none;"></div>
+
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <h1 class="success-message">Xác Minh Thành Công!</h1>
+        <p class="success-text" id="success-detail">Bạn đã xác minh thành công. Bây giờ có thể đóng trang này và quay lại Discord.</p>
+        <p class="success-text">Role sẽ được cấp tự động.</p>
+    </div>
+
+    <div id="error-section" style="display:none;">
+        <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <h1>Lỗi</h1>
+        <p class="subtitle" id="error-section-msg"></p>
+    </div>
+</div>
+
+<script>
+    const USER_ID = '{{ user_id }}';
+    const USER_INFO = {{ user_info | tojson }};
+
+    function showSection(id) {
+        ['loading-section','verify-section','success-section','error-section'].forEach(s => {
+            document.getElementById(s).style.display = 'none';
+        });
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function renderAvatar(info, containerId) {
+        const c = document.getElementById(containerId);
+        if (info && info.avatar) {
+            c.innerHTML = `<img src="${info.avatar}" alt="Avatar" class="user-avatar">`;
+        } else {
+            c.innerHTML = `<div class="default-avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
+        }
+    }
+
+    function init() {
+        if (!USER_ID) {
+            document.getElementById('error-section-msg').textContent = 'Link xác minh không hợp lệ. Vui lòng lấy link mới từ Discord.';
+            showSection('error-section');
+            return;
+        }
+
+        if (USER_INFO) {
+            renderAvatar(USER_INFO, 'avatar-section');
+            const nameEl = document.getElementById('user-name-el');
+            const tagEl = document.getElementById('user-tag-el');
+            if (USER_INFO.name) { nameEl.textContent = USER_INFO.name; nameEl.style.display = 'block'; }
+            if (USER_INFO.username) { tagEl.textContent = USER_INFO.username; tagEl.style.display = 'block'; }
+        } else {
+            document.getElementById('avatar-section').innerHTML = `<div class="logo"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>`;
+        }
+
+        {% if already_verified %}
+        renderAvatar(USER_INFO, 'success-avatar-section');
+        document.getElementById('success-detail').textContent = 'Bạn đã được xác minh trước đó.';
+        if (USER_INFO) {
+            const n = document.getElementById('success-user-name');
+            const t = document.getElementById('success-user-tag');
+            if (USER_INFO.name) { n.textContent = USER_INFO.name; n.style.display = 'block'; }
+            if (USER_INFO.username) { t.textContent = USER_INFO.username; t.style.display = 'block'; }
+        }
+        showSection('success-section');
+        {% else %}
+        showSection('verify-section');
+        {% endif %}
+    }
+
+    async function submitVerify() {
+        const btn = document.getElementById('verify-btn');
+        const errorEl = document.getElementById('error-msg');
+        errorEl.style.display = 'none';
+
+        const captchaToken = grecaptcha ? grecaptcha.getResponse() : '';
+        if (!captchaToken) {
+            errorEl.textContent = 'Vui lòng hoàn thành captcha.';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Đang xác minh...';
+
+        try {
+            const resp = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: USER_ID, captcha_token: captchaToken })
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                if (USER_INFO) {
+                    renderAvatar(USER_INFO, 'success-avatar-section');
+                    const n = document.getElementById('success-user-name');
+                    const t = document.getElementById('success-user-tag');
+                    if (USER_INFO.name) { n.textContent = USER_INFO.name; n.style.display = 'block'; }
+                    if (USER_INFO.username) { t.textContent = USER_INFO.username; t.style.display = 'block'; }
+                }
+                if (data.already_verified) {
+                    document.getElementById('success-detail').textContent = 'Bạn đã được xác minh trước đó.';
+                }
+                showSection('success-section');
+            } else {
+                errorEl.textContent = data.error || 'Xác minh thất bại. Vui lòng thử lại.';
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Xác Minh';
+                if (grecaptcha) grecaptcha.reset();
+            }
+        } catch (e) {
+            errorEl.textContent = 'Lỗi kết nối đến máy chủ. Vui lòng thử lại.';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Xác Minh';
+            if (grecaptcha) grecaptcha.reset();
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
