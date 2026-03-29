@@ -47,12 +47,11 @@ def home():
 @app.route('/verify/<user_id>')
 def verify_page(user_id):
     user_info = user_info_store.get(user_id)
-    already_verified = user_id in verified_users
     return render_template('verify.html',
                            site_key=RECAPTCHA_SITE_KEY,
                            user_id=user_id,
                            user_info=user_info,
-                           already_verified=already_verified)
+                           already_verified=False)
 
 
 @app.route('/api/register-user', methods=['POST'])
